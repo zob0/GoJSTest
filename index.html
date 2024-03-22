@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="go-debug.js"></script>
+    <script>
+      flag = true;
+      $ = go.GraphObject.make;
+      function main() {
+        if (flag) dijagram = $(go.Diagram, "divId");
+        flag = false;
+        dijagram.nodeTemplate = $(
+          go.Node,
+          "Auto",
+          $(go.Shape, "RoundedRectangle", new go.Binding("fill", "color")),
+          $(
+            go.Panel,
+            "Vertical",
+            $(
+              go.Picture,
+              {
+                desiredSize: new go.Size(200, 250),
+              },
+              new go.Binding("source", "url", function (u) {
+                switch (u) {
+                  case 0:
+                    return "ronaldo.png";
+                  case 1:
+                    return "messi.png";
+                  case 2:
+                    return "ronaldinjo.png";
+                }
+              })
+            ),
+            $(
+              go.Panel,
+              "Auto",
+              $(go.Shape, "RoundedRectangle", {
+                margin: 5,
+                fill: "lightblue",
+                desiredSize: new go.Size(200, 35),
+              }),
+              $(
+                go.TextBlock,
+                "text",
+                {
+                  font: "Italic normal 600 15pt Arial",
+                  stroke: "maroon",
+                },
+                new go.Binding("text", "key")
+              )
+            )
+          )
+        );
+        dijagram.layout = $(go.GridLayout);
+        dijagram.model = new go.Model([
+          { key: "Cristiano Ronaldo", color: "gold", url: 0 },
+          { key: "Lionel Messi", color: "gold", url: 1 },
+          { key: "Ronaldinho Gaúcho", color: "gold", url: 2 },
+        ]);
+      }
+      function drvo() {
+        dijagram.model = go.Model.fromJson({
+          class: "TreeModel",
+          nodeDataArray: [
+            { key: "GraphObject" },
+            { key: "Panel", parent: "GraphObject" },
+            { key: "Shape", parent: "GraphObject" },
+            { key: "TextBlock", parent: "GraphObject" },
+            { key: "Picture", parent: "GraphObject" },
+            { key: "Placeholder", parent: "GraphObject" },
+            { key: "Part", parent: "Panel" },
+            { key: "Adornment", parent: "Part" },
+            { key: "Node", parent: "Part" },
+            { key: "Link", parent: "Part" },
+            { key: "Group", parent: "Node" },
+          ],
+        });
+        dijagram.linkTemplate = $(
+          go.Link,
+          {
+            curve: go.Link.Bezier,
+            toEndSegmentLength: 30,
+            fromEndSegmentLength: 30,
+          },
+          $(go.Shape, { strokeWidth: 1.5 })
+        );
+        dijagram.layout = $(go.TreeLayout, { angle: 90 });
+        dijagram.nodeTemplate = $(
+          go.Node,
+          "Auto",
+          $(go.Shape, {
+            figure: "Rectangle",
+            fill: "lightblue",
+          }),
+          $(
+            go.TextBlock,
+            {
+              margin: 5,
+              font: "Normal small-caps bold 20px Georgia",
+            },
+            new go.Binding("text", "key")
+          )
+        );
+      }
+      function dijagramStanja() {
+        dijagram.model = go.Model.fromJson({
+          class: "GraphLinksModel",
+          nodeDataArray: [
+            { key: "Nepopunjen" },
+            { key: "Popunjen" },
+            { key: "Predat" },
+            { key: "Odobren" },
+            { key: "Potpisan" },
+            { key: "Odbijen" },
+            { key: "Start", category: "krug" },
+            { key: "End", category: "krugovi" },
+          ],
+          linkDataArray: [
+            { from: "Nepopunjen", to: "Popunjen", naziv: "popunjavanje" },
+            { from: "Popunjen", to: "Predat", naziv: "predaja" },
+            { from: "Predat", to: "Odobren", naziv: "odobravanje" },
+            { from: "Predat", to: "Odbijen", naziv: "odbijanje" },
+            { from: "Odobren", to: "Potpisan", naziv: "potpisivanje" },
+            { from: "Start", to: "Nepopunjen" },
+            { from: "Potpisan", to: "End" },
+            { from: "Odbijen", to: "End" },
+          ],
+        });
+        const startNode = $(
+          go.Node,
+          $(go.Shape, "Ellipse", {
+            fill: "black",
+            desiredSize: new go.Size(25, 25),
+          })
+        );
+
+        const endNode = $(
+          go.Node,
+          "Auto",
+          $(go.Shape, "Ellipse", {
+            desiredSize: new go.Size(30, 30),
+            fill: "white",
+          }),
+          $(go.Shape, "Ellipse", {
+            desiredSize: new go.Size(20, 20),
+            fill: "black",
+          })
+        );
+        dijagram.nodeTemplate = $(
+          go.Node,
+          "Auto",
+          $(go.Shape, "RoundedRectangle", {
+            fill: "lightblue",
+          }),
+          $(
+            go.TextBlock,
+            {
+              margin: 10,
+            },
+            new go.Binding("text", "key")
+          )
+        );
+        dijagram.nodeTemplateMap.add("krug", startNode);
+        dijagram.nodeTemplateMap.add("krugovi", endNode);
+        dijagram.linkTemplate = $(
+          go.Link,
+          $(go.Shape, { stroke: "maroon" }),
+          $(go.Shape, {
+            toArrow: "standard",
+            stroke: "maroon",
+            fill: "maroon",
+          }),
+          $(
+            go.TextBlock,
+            { font: "bold 13px sans-serif" },
+            new go.Binding("text", "naziv")
+          )
+        );
+        dijagram.layout = $(go.CircularLayout, { radius: 200 });
+      }
+    </script>
+    <style>
+      button {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body onload="main()">
+    <div
+      id="divId"
+      style="width: 90vw; height: 90vh; border: 1px solid black"
+    ></div>
+    <button onclick="main()">Kartice</button>
+    <button onclick="drvo()">Stablo</button>
+    <button onclick="dijagramStanja()">Dijagram stanja</button>
+  </body>
+</html>
